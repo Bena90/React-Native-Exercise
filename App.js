@@ -1,54 +1,64 @@
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Button, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, FlatList, StyleSheet, View } from 'react-native';
+import GoalInput from './componets/GoalInput';
+import GoalItem from './componets/GoalItem';
 
 export default function App() {
-  const [ goal, setNewGoal ] = React.useState('');
   const [ goals, setGoals ] = React.useState([])
+  const [ modal, setModal ] = React.useState(false)
 
-  const goalInputHandler = (input) => { 
-    setNewGoal(input)
+  const startAddGoalHandler = () => {
+    setModal(true)
   }
 
-  const addGoalHandler = () => {
+  const endAddGoalHandler = () => {
+    setModal(false)
+  }
+
+  const addGoalHandler = (goal) => {
     const newGoal = {
       id: Math.random(),
       goal
     }
-    console.log(newGoal)
-
     setGoals (prev => [...prev, newGoal])
-    setNewGoal('')
+    endAddGoalHandler()
+  }
+
+  const deleteGoal = (id) => {
+    const updatedGoals = goals.filter((goal) => goal.id !== id)
+    setGoals(updatedGoals)
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TextInput 
-          style={styles.textInput} 
-          placeholder='Enter the goal' 
-          onChangeText={goalInputHandler} 
-        />
-        <Button  title='Add Goal' onPress={addGoalHandler}/>
-      </View>
-      <View style={styles.goalsContainer}>
-        <FlatList >
-          {
-            goals.length
-              ? 
-              goals?.map ((goal) =>
-                <View style={styles.goalItem}  key={goal.id}>
-                  <Text style={styles.goalText}> {goal.goal} </Text>
-                </View>
+    <>
+      <StatusBar style='auto'/>
+      <View style={styles.container}>
+        <Button title='Add new Goal' color='rgb(33,150,243)' onPress={startAddGoalHandler} />
+        {modal && <GoalInput 
+                    visible={modal} 
+                    onCancel={endAddGoalHandler}  
+                    addGoalHandler={addGoalHandler} 
+                  />}
+        <View style={styles.goalsContainer}>
+          <FlatList
+            data={goals}
+            keyExtractor={(item, index) => item.id}
+            alwaysBounceVertical={false}
+            renderItem={(item) => {
+              return(
+                <GoalItem 
+                  item={item} 
+                  onDeleteItem={deleteGoal}
+                  />
               )
-              :
-              <View style={styles.goalItem}>
-                <Text style={styles.goalText}>No goals yet!</Text>
-              </View>
-          }
-
-        </FlatList>
+            }
+            } 
+          >
+          </FlatList>
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
@@ -58,25 +68,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: 35,
     
-  },
-  inputContainer: {
-    flex:1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc'
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginRight: 10,
-    padding: 5,
-    width: '70%',
-
   },
   goalsContainer: {
     flex: 2,
